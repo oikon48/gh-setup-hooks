@@ -19,7 +19,7 @@ Add to `.claude/settings.json`:
         "hooks": [
           {
             "type": "command",
-            "command": "bunx -y gh-setup-hooks",
+            "command": "bun x gh-setup-hooks",
             "timeout": 120
           }
         ]
