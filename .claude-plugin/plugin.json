@@ -1,0 +1,9 @@
+{
+  "name": "gh-setup",
+  "version": "1.0.0",
+  "description": "Auto-install GitHub CLI for Claude Code on the Web remote environments",
+  "author": "oikon",
+  "repository": "https://github.com/oikon48/gh-setup",
+  "license": "MIT",
+  "keywords": ["github", "cli", "remote", "setup"]
+}
