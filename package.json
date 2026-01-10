@@ -1,0 +1,29 @@
+{
+  "name": "@oikon48/gh-setup",
+  "version": "2.0.0",
+  "description": "One-line setup for GitHub CLI auto-installation on Claude Code on the Web",
+  "type": "module",
+  "bin": {
+    "gh-setup": "./bin/gh-setup.js"
+  },
+  "files": [
+    "bin",
+    "src"
+  ],
+  "keywords": [
+    "claude-code",
+    "github-cli",
+    "hooks",
+    "remote",
+    "setup"
+  ],
+  "author": "oikon",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/oikon48/gh-setup"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
