@@ -43,6 +43,8 @@ To use `gh` commands (e.g., `gh pr create`), you need to set `GH_TOKEN` or `GITH
 
 > **Note**: The token needs `repo` scope for most operations.
 
+Claude Code on the Web network should be **Full** or **Custom**. If using **Custom** you need to allow `release-assets.githubusercontent.com` using this script.
+
 ## How It Works
 
 1. Start a session on Claude Code on the Web
