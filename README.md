@@ -1,10 +1,10 @@
 # gh-setup
 
-Claude Code on the WebでGitHub CLIを自動インストール。**settings.jsonに1行追加するだけ。**
+Auto-install GitHub CLI on Claude Code on the Web. **Just add one line to settings.json.**
 
 ## Setup
 
-`.claude/settings.json` に追加：
+Add to `.claude/settings.json`:
 
 ```json
 {
@@ -24,33 +24,33 @@ Claude Code on the WebでGitHub CLIを自動インストール。**settings.json
 }
 ```
 
-これだけ。
+That's it.
 
 ## How It Works
 
-1. Claude Code on the Webでセッション開始
-2. SessionStartフックが `npx @oikon48/gh-setup` を実行
-3. リモート環境（`CLAUDE_CODE_REMOTE=true`）でのみghをインストール
-4. `~/.local/bin` にインストールしPATHを永続化
-5. ローカル環境では何もしない
+1. Start a session on Claude Code on the Web
+2. SessionStart hook runs `npx @oikon48/gh-setup`
+3. Installs gh only in remote environment (`CLAUDE_CODE_REMOTE=true`)
+4. Installs to `~/.local/bin` and persists PATH
+5. Does nothing in local environment
 
 ## Features
 
-- **設定1行**: settings.jsonに追加するだけ
-- **自動更新**: npxが最新バージョンを取得
-- **セキュリティ**: SHA256チェックサム検証
-- **冪等性**: インストール済みならスキップ
-- **PATH永続化**: `CLAUDE_ENV_FILE`でセッション中のPATHを維持
+- **One-line config**: Just add to settings.json
+- **Auto-update**: npx fetches the latest version
+- **Secure**: SHA256 checksum verification
+- **Idempotent**: Skips if already installed
+- **PATH persistence**: Uses `CLAUDE_ENV_FILE` to maintain PATH
 
 ## Configuration
 
-| 環境変数 | 説明 | デフォルト |
-|---------|------|-----------|
-| `GH_SETUP_VERSION` | インストールするghのバージョン | `2.83.2` |
+| Environment Variable | Description | Default |
+|---------------------|-------------|---------|
+| `GH_SETUP_VERSION` | gh version to install | `2.83.2` |
 
 ## Note
 
-⚠️ **`bunx` は使用不可**（[#16150](https://github.com/anthropics/claude-code/issues/16150)）。`npx` を使用。
+⚠️ **`bunx` does not work** ([#16150](https://github.com/anthropics/claude-code/issues/16150)). Use `npx`.
 
 ## License
 
@@ -58,6 +58,5 @@ MIT
 
 ## References
 
-- [Zenn: Claude Code on the WebでのghコマンドBD](https://zenn.dev/oikon/articles/claude-code-web-gh-cli)
 - [GitHub CLI](https://cli.github.com/)
 - [Claude Code Hooks](https://code.claude.com/docs/en/hooks)
