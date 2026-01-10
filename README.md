@@ -1,6 +1,21 @@
 # gh-setup-hooks
 
+[![npm version](https://badge.fury.io/js/gh-setup-hooks.svg)](https://www.npmjs.com/package/gh-setup-hooks)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 Auto-install GitHub CLI on Claude Code on the Web. **Just add one line to settings.json.**
+
+## Install
+
+```bash
+npm install gh-setup-hooks
+```
+
+Or use directly with npx (recommended for hooks):
+
+```bash
+npx -y gh-setup-hooks
+```
 
 ## Setup
 
@@ -62,7 +77,7 @@ To use `gh` commands (e.g., `gh pr create`), you need to set `GITHUB_TOKEN`:
 
 ## Note
 
-⚠️ **`bunx` does not work** ([#16150](https://github.com/anthropics/claude-code/issues/16150)). Use `npx`.
+⚠️ **`bunx` does not work** on Claude Code on the Web due to npm registry access issues ([#16150](https://github.com/anthropics/claude-code/issues/16150)). Use `npx` instead.
 
 ## License
 
@@ -70,6 +85,7 @@ MIT
 
 ## References
 
+- [npm package](https://www.npmjs.com/package/gh-setup-hooks)
 - [GitHub CLI](https://cli.github.com/)
 - [Claude Code Hooks](https://code.claude.com/docs/en/hooks)
 - [GitHub Personal Access Tokens](https://github.com/settings/tokens)
