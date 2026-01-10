@@ -14,7 +14,7 @@ Add to `.claude/settings.json`:
         "hooks": [
           {
             "type": "command",
-            "command": "npx -y @oikon48/gh-setup",
+            "command": "npx -y gh-setup-hooks",
             "timeout": 120
           }
         ]
