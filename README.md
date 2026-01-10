@@ -31,7 +31,7 @@ Add to `.claude/settings.json`:
 
 `npx -y gh-setup-hooks` is also ok.
 
-### 2. Set GITHUB_TOKEN in Claude Code on the Web
+### 2. Set up Claude Code on the Web
 
 To use `gh` commands (e.g., `gh pr create`), you need to set `GH_TOKEN` or `GITHUB_TOKEN`:
 
