@@ -45,7 +45,7 @@ To use `gh` commands (e.g., `gh pr create`), you need to set `GH_TOKEN` or `GITH
 
 Claude Code on the Web network should be **Full** or **Custom**. If using **Custom**, you need to allow `release-assets.githubusercontent.com`.
 
-![Cloud Environment Settings](images/cloud-environment-settings.png)
+<img src="images/cloud-environment-settings.png" width="400" alt="Cloud Environment Settings">
 
 ## How It Works
 
