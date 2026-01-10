@@ -1,6 +1,6 @@
 {
   "name": "gh-setup-hooks",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "One-line setup for GitHub CLI auto-installation on Claude Code on the Web",
   "type": "module",
   "bin": {
