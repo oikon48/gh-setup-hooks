@@ -16,32 +16,47 @@ function log(msg) {
   console.error(`${LOG_PREFIX} ${msg}`);
 }
 
+// Validate owner/repo contains only safe characters
+const VALID_GH_REPO = /^[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+$/;
+
 function parseGhRepo(remoteUrl) {
   if (!remoteUrl) return null;
   const cleaned = remoteUrl.trim().replace(/\.git$/, '');
 
+  let repo = null;
+
   // Proxy URL: http://local_proxy@127.0.0.1:PORT/git/owner/repo
   const proxyMatch = cleaned.match(/\/git\/([^/]+\/[^/]+)$/);
-  if (proxyMatch) return proxyMatch[1];
+  if (proxyMatch) repo = proxyMatch[1];
 
   // SSH URL scheme: ssh://git@github.com/owner/repo
-  const sshUrlMatch = cleaned.match(/ssh:\/\/[^@]+@github\.com\/([^/]+\/[^/]+)$/);
-  if (sshUrlMatch) return sshUrlMatch[1];
+  if (!repo) {
+    const sshUrlMatch = cleaned.match(/ssh:\/\/[^@]+@github\.com\/([^/]+\/[^/]+)$/);
+    if (sshUrlMatch) repo = sshUrlMatch[1];
+  }
 
   // HTTPS: https://github.com/owner/repo
-  const httpsMatch = cleaned.match(/github\.com\/([^/]+\/[^/]+)$/);
-  if (httpsMatch) return httpsMatch[1];
+  if (!repo) {
+    const httpsMatch = cleaned.match(/\/\/github\.com\/([^/]+\/[^/]+)$/);
+    if (httpsMatch) repo = httpsMatch[1];
+  }
 
   // SSH SCP: git@github.com:owner/repo
-  const sshMatch = cleaned.match(/github\.com:([^/]+\/[^/]+)$/);
-  if (sshMatch) return sshMatch[1];
+  if (!repo) {
+    const sshMatch = cleaned.match(/@github\.com:([^/]+\/[^/]+)$/);
+    if (sshMatch) repo = sshMatch[1];
+  }
 
+  if (repo && VALID_GH_REPO.test(repo)) return repo;
   return null;
 }
 
 function setupGhRepo() {
   const envFile = process.env.CLAUDE_ENV_FILE;
   if (!envFile) return;
+
+  // Skip if GH_REPO already set
+  if (process.env.GH_REPO) return;
 
   try {
     const remoteUrl = execSync('git remote get-url origin', {

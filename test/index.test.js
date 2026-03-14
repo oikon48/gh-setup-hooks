@@ -95,6 +95,20 @@ describe('parseGhRepo', () => {
       );
     });
 
+    it('returns null for similar host like notgithub.com', () => {
+      assert.equal(
+        parseGhRepo('https://notgithub.com/owner/repo'),
+        null
+      );
+    });
+
+    it('returns null for URL with shell metacharacters', () => {
+      assert.equal(
+        parseGhRepo('http://127.0.0.1:8080/git/owner$(id)/repo'),
+        null
+      );
+    });
+
     it('handles trailing whitespace', () => {
       assert.equal(
         parseGhRepo('https://github.com/owner/repo  \n'),
