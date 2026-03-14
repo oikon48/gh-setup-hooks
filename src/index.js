@@ -16,6 +16,49 @@ function log(msg) {
   console.error(`${LOG_PREFIX} ${msg}`);
 }
 
+function parseGhRepo(remoteUrl) {
+  if (!remoteUrl) return null;
+  const cleaned = remoteUrl.trim().replace(/\.git$/, '');
+
+  // Proxy URL: http://local_proxy@127.0.0.1:PORT/git/owner/repo
+  const proxyMatch = cleaned.match(/\/git\/([^/]+\/[^/]+)$/);
+  if (proxyMatch) return proxyMatch[1];
+
+  // SSH URL scheme: ssh://git@github.com/owner/repo
+  const sshUrlMatch = cleaned.match(/ssh:\/\/[^@]+@github\.com\/([^/]+\/[^/]+)$/);
+  if (sshUrlMatch) return sshUrlMatch[1];
+
+  // HTTPS: https://github.com/owner/repo
+  const httpsMatch = cleaned.match(/github\.com\/([^/]+\/[^/]+)$/);
+  if (httpsMatch) return httpsMatch[1];
+
+  // SSH SCP: git@github.com:owner/repo
+  const sshMatch = cleaned.match(/github\.com:([^/]+\/[^/]+)$/);
+  if (sshMatch) return sshMatch[1];
+
+  return null;
+}
+
+function setupGhRepo() {
+  const envFile = process.env.CLAUDE_ENV_FILE;
+  if (!envFile) return;
+
+  try {
+    const remoteUrl = execSync('git remote get-url origin', {
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+    }).trim();
+
+    const repo = parseGhRepo(remoteUrl);
+    if (repo) {
+      fs.appendFileSync(envFile, `export GH_REPO="${repo}"\n`);
+      log(`GH_REPO set to ${repo}`);
+    }
+  } catch (e) {
+    // Not in a git repository or no origin remote — silently skip
+  }
+}
+
 function updatePath() {
   const envFile = process.env.CLAUDE_ENV_FILE;
   if (envFile) {
@@ -37,6 +80,7 @@ function run() {
   try {
     const version = execSync('gh --version', { encoding: 'utf8' }).split('\n')[0];
     log(`gh CLI already available: ${version}`);
+    setupGhRepo();
     process.exit(0);
   } catch (e) {
     // gh not found, continue with installation
@@ -46,6 +90,7 @@ function run() {
   if (fs.existsSync(GH_PATH)) {
     log(`gh found in ${LOCAL_BIN}`);
     updatePath();
+    setupGhRepo();
     process.exit(0);
   }
 
@@ -103,6 +148,7 @@ function run() {
     fs.chmodSync(GH_PATH, 0o755);
 
     updatePath();
+    setupGhRepo();
 
     const version = execSync(`${GH_PATH} --version`, { encoding: 'utf8' }).split('\n')[0];
     log(`gh CLI installed successfully: ${version}`);
@@ -115,4 +161,4 @@ function run() {
   process.exit(0);
 }
 
-export { run as main };
+export { run as main, parseGhRepo, ARCH_MAP };

@@ -23,6 +23,9 @@
     "type": "git",
     "url": "https://github.com/oikon48/gh-setup-hooks"
   },
+  "scripts": {
+    "test": "node --test 'test/**/*.test.js'"
+  },
   "engines": {
     "node": ">=18.0.0"
   }
