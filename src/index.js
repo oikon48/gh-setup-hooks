@@ -5,7 +5,7 @@ import os from 'os';
 const LOG_PREFIX = '[gh-setup-hooks]';
 const LOCAL_BIN = `${process.env.HOME}/.local/bin`;
 const GH_PATH = `${LOCAL_BIN}/gh`;
-const DEFAULT_GH_VERSION = '2.83.2';
+const DEFAULT_GH_VERSION = '2.88.1';
 
 const ARCH_MAP = {
   x64: 'amd64',
