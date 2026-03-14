@@ -5,7 +5,7 @@ import os from 'os';
 const LOG_PREFIX = '[gh-setup-hooks]';
 const LOCAL_BIN = `${process.env.HOME}/.local/bin`;
 const GH_PATH = `${LOCAL_BIN}/gh`;
-const DEFAULT_GH_VERSION = '2.83.2';
+const DEFAULT_GH_VERSION = '2.88.1';
 
 const ARCH_MAP = {
   x64: 'amd64',
@@ -14,6 +14,64 @@ const ARCH_MAP = {
 
 function log(msg) {
   console.error(`${LOG_PREFIX} ${msg}`);
+}
+
+// Validate owner/repo contains only safe characters
+const VALID_GH_REPO = /^[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+$/;
+
+function parseGhRepo(remoteUrl) {
+  if (!remoteUrl) return null;
+  const cleaned = remoteUrl.trim().replace(/\.git$/, '');
+
+  let repo = null;
+
+  // Proxy URL: http://local_proxy@127.0.0.1:PORT/git/owner/repo
+  const proxyMatch = cleaned.match(/\/git\/([^/]+\/[^/]+)$/);
+  if (proxyMatch) repo = proxyMatch[1];
+
+  // SSH URL scheme: ssh://git@github.com/owner/repo
+  if (!repo) {
+    const sshUrlMatch = cleaned.match(/ssh:\/\/[^@]+@github\.com\/([^/]+\/[^/]+)$/);
+    if (sshUrlMatch) repo = sshUrlMatch[1];
+  }
+
+  // HTTPS: https://github.com/owner/repo
+  if (!repo) {
+    const httpsMatch = cleaned.match(/\/\/github\.com\/([^/]+\/[^/]+)$/);
+    if (httpsMatch) repo = httpsMatch[1];
+  }
+
+  // SSH SCP: git@github.com:owner/repo
+  if (!repo) {
+    const sshMatch = cleaned.match(/@github\.com:([^/]+\/[^/]+)$/);
+    if (sshMatch) repo = sshMatch[1];
+  }
+
+  if (repo && VALID_GH_REPO.test(repo)) return repo;
+  return null;
+}
+
+function setupGhRepo() {
+  const envFile = process.env.CLAUDE_ENV_FILE;
+  if (!envFile) return;
+
+  // Skip if GH_REPO already set
+  if (process.env.GH_REPO) return;
+
+  try {
+    const remoteUrl = execSync('git remote get-url origin', {
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+    }).trim();
+
+    const repo = parseGhRepo(remoteUrl);
+    if (repo) {
+      fs.appendFileSync(envFile, `export GH_REPO="${repo}"\n`);
+      log(`GH_REPO set to ${repo}`);
+    }
+  } catch (e) {
+    // Not in a git repository or no origin remote — silently skip
+  }
 }
 
 function updatePath() {
@@ -37,6 +95,7 @@ function run() {
   try {
     const version = execSync('gh --version', { encoding: 'utf8' }).split('\n')[0];
     log(`gh CLI already available: ${version}`);
+    setupGhRepo();
     process.exit(0);
   } catch (e) {
     // gh not found, continue with installation
@@ -46,6 +105,7 @@ function run() {
   if (fs.existsSync(GH_PATH)) {
     log(`gh found in ${LOCAL_BIN}`);
     updatePath();
+    setupGhRepo();
     process.exit(0);
   }
 
@@ -103,6 +163,7 @@ function run() {
     fs.chmodSync(GH_PATH, 0o755);
 
     updatePath();
+    setupGhRepo();
 
     const version = execSync(`${GH_PATH} --version`, { encoding: 'utf8' }).split('\n')[0];
     log(`gh CLI installed successfully: ${version}`);
@@ -115,4 +176,4 @@ function run() {
   process.exit(0);
 }
 
-export { run as main };
+export { run as main, parseGhRepo, ARCH_MAP };
