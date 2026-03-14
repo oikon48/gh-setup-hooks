@@ -5,7 +5,7 @@ import os from 'os';
 const LOG_PREFIX = '[gh-setup-hooks]';
 const LOCAL_BIN = `${process.env.HOME}/.local/bin`;
 const GH_PATH = `${LOCAL_BIN}/gh`;
-const DEFAULT_GH_VERSION = '2.83.2';
+const DEFAULT_GH_VERSION = '2.88.1';
 
 const ARCH_MAP = {
   x64: 'amd64',
@@ -16,11 +16,54 @@ function log(msg) {
   console.error(`${LOG_PREFIX} ${msg}`);
 }
 
+function parseGhRepo(remoteUrl) {
+  if (!remoteUrl) return null;
+  const cleaned = remoteUrl.trim().replace(/\.git$/, '');
+
+  // Proxy URL: http://local_proxy@127.0.0.1:PORT/git/owner/repo
+  const proxyMatch = cleaned.match(/\/git\/([^/]+\/[^/]+)$/);
+  if (proxyMatch) return proxyMatch[1];
+
+  // HTTPS: https://github.com/owner/repo
+  const httpsMatch = cleaned.match(/github\.com\/([^/]+\/[^/]+)$/);
+  if (httpsMatch) return httpsMatch[1];
+
+  // SSH: git@github.com:owner/repo
+  const sshMatch = cleaned.match(/github\.com:([^/]+\/[^/]+)$/);
+  if (sshMatch) return sshMatch[1];
+
+  return null;
+}
+
+function setupGhRepo() {
+  const envFile = process.env.CLAUDE_ENV_FILE;
+  if (!envFile) return;
+
+  try {
+    const remoteUrl = execSync('git remote get-url origin', {
+      encoding: 'utf8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+    }).trim();
+
+    const repo = parseGhRepo(remoteUrl);
+    if (repo) {
+      fs.appendFileSync(envFile, `export GH_REPO="${repo}"\n`);
+      log(`GH_REPO set to ${repo}`);
+    }
+  } catch (e) {
+    // Not in a git repository or no origin remote — silently skip
+  }
+}
+
 function updatePath() {
   const envFile = process.env.CLAUDE_ENV_FILE;
   if (envFile) {
-    fs.appendFileSync(envFile, `export PATH="${LOCAL_BIN}:$PATH"\n`);
-    log('PATH persisted to CLAUDE_ENV_FILE');
+    try {
+      fs.appendFileSync(envFile, `export PATH="${LOCAL_BIN}:$PATH"\n`);
+      log('PATH persisted to CLAUDE_ENV_FILE');
+    } catch (e) {
+      log(`Failed to persist PATH to CLAUDE_ENV_FILE: ${e.message}`);
+    }
   }
 }
 
@@ -37,6 +80,7 @@ function run() {
   try {
     const version = execSync('gh --version', { encoding: 'utf8' }).split('\n')[0];
     log(`gh CLI already available: ${version}`);
+    setupGhRepo();
     process.exit(0);
   } catch (e) {
     // gh not found, continue with installation
@@ -46,6 +90,7 @@ function run() {
   if (fs.existsSync(GH_PATH)) {
     log(`gh found in ${LOCAL_BIN}`);
     updatePath();
+    setupGhRepo();
     process.exit(0);
   }
 
@@ -79,19 +124,15 @@ function run() {
 
     // Download and verify checksum
     log('Verifying checksum...');
-    try {
-      execSync(
-        `curl -fsSL --connect-timeout 5 --max-time 30 "${checksumUrl}" -o "${tempDir}/checksums.txt"`,
-        { stdio: 'pipe' }
-      );
-      execSync(
-        `cd "${tempDir}" && grep "${tarball}" checksums.txt | sha256sum -c -`,
-        { stdio: 'pipe' }
-      );
-      log('Checksum verified');
-    } catch (e) {
-      log('Failed to verify checksum, skipping verification');
-    }
+    execSync(
+      `curl -fsSL --proto '=https' --tlsv1.2 --connect-timeout 5 --max-time 30 "${checksumUrl}" -o "${tempDir}/checksums.txt"`,
+      { stdio: 'pipe' }
+    );
+    execSync(
+      `cd "${tempDir}" && grep "${tarball}" checksums.txt | sha256sum -c -`,
+      { stdio: 'pipe' }
+    );
+    log('Checksum verified');
 
     // Extract
     log('Extracting...');
@@ -103,6 +144,7 @@ function run() {
     fs.chmodSync(GH_PATH, 0o755);
 
     updatePath();
+    setupGhRepo();
 
     const version = execSync(`${GH_PATH} --version`, { encoding: 'utf8' }).split('\n')[0];
     log(`gh CLI installed successfully: ${version}`);
@@ -115,4 +157,4 @@ function run() {
   process.exit(0);
 }
 
-export { run as main };
+export { run as main, parseGhRepo, ARCH_MAP };

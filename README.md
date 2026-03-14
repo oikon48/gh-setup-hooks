@@ -43,7 +43,15 @@ To use `gh` commands (e.g., `gh pr create`), you need to set `GH_TOKEN` or `GITH
 
 > **Note**: The token needs `repo` scope for most operations.
 
-Claude Code on the Web network should be **Full** or **Custom**. If using **Custom**, you need to allow `release-assets.githubusercontent.com`.
+Claude Code on the Web network should be **Full** or **Custom**. If using **Custom**, you need to allow the following URLs:
+
+- `github.com` - gh CLI binary download
+- `objects.githubusercontent.com` - gh CLI binary download (redirected)
+
+To read GitHub Actions CI logs via `gh run view --log`, also allow:
+
+- `results-receiver.actions.githubusercontent.com`
+- `*.blob.core.windows.net`
 
 <img src="images/cloud-environment-settings.png" width="400" alt="Cloud Environment Settings">
 
@@ -53,13 +61,14 @@ Claude Code on the Web network should be **Full** or **Custom**. If using **Cust
 2. SessionStart hook runs `npx gh-setup-hooks`
 3. Installs gh only in remote environment (`CLAUDE_CODE_REMOTE=true`)
 4. Installs to `~/.local/bin` and persists PATH
-5. Does nothing in local environment
+5. Auto-detects `owner/repo` from git remote and sets `GH_REPO` so `gh` commands work with proxy remotes
+6. Does nothing in local environment
 
 ## Configuration
 
 | Environment Variable | Description | Default |
 |---------------------|-------------|---------|
-| `GH_SETUP_VERSION` | gh version to install | `2.83.2` |
+| `GH_SETUP_VERSION` | gh version to install | `2.88.1` |
 
 ## License
 
